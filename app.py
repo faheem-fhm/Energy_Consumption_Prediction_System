@@ -2,73 +2,89 @@ import streamlit as st
 import pandas as pd
 import pickle
 
-# -------------------------
-# Page Configuration
-# -------------------------
+# --------------------------------------------------
+# PAGE CONFIG
+# --------------------------------------------------
 st.set_page_config(
     page_title="Energy Consumption Prediction",
     page_icon="",
     layout="wide"
 )
 
-# -------------------------
-# Custom CSS
-# -------------------------
+# --------------------------------------------------
+# CUSTOM CSS
+# --------------------------------------------------
 st.markdown("""
 <style>
+
 .main {
     padding-top: 1rem;
 }
-.stMetric {
-    background-color: #f8f9fa;
-    padding: 10px;
+
+[data-testid="stMetric"] {
+    background-color: rgba(28,131,225,0.1);
+    border: 1px solid rgba(28,131,225,0.3);
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.stButton > button {
+    width: 100%;
+    height: 50px;
+    font-size: 18px;
+    font-weight: bold;
     border-radius: 10px;
 }
-h1, h2, h3 {
-    color: #1f77b4;
-}
+
 </style>
 """, unsafe_allow_html=True)
 
-# -------------------------
-# Load Model
-# -------------------------
+# --------------------------------------------------
+# LOAD MODEL
+# --------------------------------------------------
 @st.cache_resource
 def load_model():
     with open("model.pkl", "rb") as file:
-        model = pickle.load(file)
-    return model
+        return pickle.load(file)
 
 model = load_model()
 
-# -------------------------
-# Header
-# -------------------------
+# --------------------------------------------------
+# HEADER
+# --------------------------------------------------
 st.title("Energy Consumption Prediction System")
-st.markdown("### Predict Household Power Consumption Using Machine Learning")
+st.markdown(
+    "Predict household electricity consumption using Machine Learning."
+)
 
-# -------------------------
-# Input Section
-# -------------------------
+st.markdown("---")
+
+# --------------------------------------------------
+# INPUT SECTION
+# --------------------------------------------------
 col1, col2 = st.columns(2)
 
 with col1:
     global_reactive_power = st.number_input(
         "Global Reactive Power",
         min_value=0.0,
-        value=0.10
+        value=0.10,
+        step=0.01
     )
 
     voltage = st.number_input(
         "Voltage",
         min_value=0.0,
-        value=240.0
+        value=240.0,
+        step=0.1
     )
 
     global_intensity = st.number_input(
         "Global Intensity",
         min_value=0.0,
-        value=10.0
+        value=10.0,
+        step=0.1
     )
 
 with col2:
@@ -90,9 +106,9 @@ with col2:
         value=17
     )
 
-# -------------------------
-# Derived Features
-# -------------------------
+# --------------------------------------------------
+# DERIVED FEATURES
+# --------------------------------------------------
 total_sub_metering = (
     sub_metering_1 +
     sub_metering_2 +
@@ -100,25 +116,32 @@ total_sub_metering = (
 )
 
 apparent_power = voltage * global_intensity
+
+# --------------------------------------------------
+# KPI SECTION
+# --------------------------------------------------
 st.subheader("Energy Metrics")
 
 m1, m2 = st.columns(2)
 
-m1.metric(
-    "Total Sub Metering",
-    total_sub_metering
-)
+with m1:
+    st.metric(
+        "🔌 Total Sub Metering",
+        total_sub_metering
+    )
 
-m2.metric(
-    "Estimated Apparent Power",
-    f"{apparent_power:.2f}"
-)
+with m2:
+    st.metric(
+        "Apparent Power",
+        f"{apparent_power:.2f}"
+    )
 
-# -------------------------
-# Prediction
-# -------------------------
-if st.button(" Predict Energy Consumption",
-             use_container_width=True):
+st.markdown("---")
+
+# --------------------------------------------------
+# PREDICTION
+# --------------------------------------------------
+if st.button("Predict Energy Consumption"):
 
     input_data = pd.DataFrame([{
         "Global_reactive_power": global_reactive_power,
@@ -133,13 +156,13 @@ if st.button(" Predict Energy Consumption",
     prediction = model.predict(input_data)[0]
 
     st.success(
-        f" Predicted Energy Consumption: {prediction:.3f} kW"
+        f"Predicted Energy Consumption: {prediction:.3f} kW"
     )
 
-# -------------------------
-# Footer
-# -------------------------
+# --------------------------------------------------
+# FOOTER
+# --------------------------------------------------
 st.markdown("---")
-st.markdown(
-    "Developed by **Mohamed Faheem** | Energy Analytics Dashboard"
+st.caption(
+    "Developed by Mohamed Faheem | Energy Consumption Prediction Dashboard"
 )
